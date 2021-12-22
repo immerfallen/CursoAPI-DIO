@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Curso.Api</name>
+    </assembly>
+    <members>
+        <member name="M:Curso.Api.Controllers.UsuarioController.Logar(Curso.Api.Models.Usuarios.LoginViewModelInput)">
+            <summary>
+            teste
+            </summary>
+            <param name="loginViewModelInput"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
