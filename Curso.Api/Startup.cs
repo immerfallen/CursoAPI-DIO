@@ -16,6 +16,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Curso.Api.Business.Repositories;
+using Curso.Api.Infraestruture.Repositories;
 
 namespace Curso.Api
 {
@@ -83,6 +85,8 @@ namespace Curso.Api
                         ValidateAudience = false
                     };
                 });
+
+            services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
