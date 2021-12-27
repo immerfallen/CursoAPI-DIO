@@ -26,5 +26,10 @@ namespace Curso.Api.Infraestruture.Repositories
         {
             _context.SaveChanges();
         }
+
+        public Usuario ObterUsuario(string login)
+        {
+            return _context.Usuario.FirstOrDefault(u=>u.Login == login);
+        }
     }
 }

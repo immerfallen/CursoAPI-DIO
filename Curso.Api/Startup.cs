@@ -18,6 +18,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Curso.Api.Business.Repositories;
 using Curso.Api.Infraestruture.Repositories;
+using Curso.Api.Infraestruture.Data;
+using Microsoft.EntityFrameworkCore;
+using Curso.Api.Configurations;
 
 namespace Curso.Api
 {
@@ -43,8 +46,8 @@ namespace Curso.Api
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "JWT Authorization header using bearer scheme",
-                    Name="Authorization",
-                    In=ParameterLocation.Header,
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
                     Type = SecuritySchemeType.ApiKey,
                     Scheme = "Bearer"
                 });
@@ -61,7 +64,7 @@ namespace Curso.Api
                         },
                         Array.Empty<string>()
                     }
-                }) ;
+                });
                 var xmlFile = $"{ Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
@@ -85,8 +88,14 @@ namespace Curso.Api
                         ValidateAudience = false
                     };
                 });
-
+            services.AddDbContext<CursoDbContext>(options =>
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+              
+            });
             services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+            services.AddScoped<IAuthenticationService, JwtService>();
+            services.AddScoped<ICursoRepository, CursoRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,5 +1,6 @@
 ﻿using Curso.Api.Business.Entities;
 using Curso.Api.Business.Repositories;
+using Curso.Api.Configurations;
 using Curso.Api.Filters;
 using Curso.Api.Infraestruture.Data;
 using Curso.Api.Models;
@@ -7,6 +8,7 @@ using Curso.Api.Models.Usuarios;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
@@ -26,7 +28,14 @@ namespace Curso.Api.Controllers
     {
         private CursoDbContext contexto;
 
-        IUsuarioRepository _usuarioRepository;
+        private readonly IUsuarioRepository _usuarioRepository;        
+        private readonly IAuthenticationService _autentication;
+
+        public UsuarioController(IUsuarioRepository usuarioRepository, IConfiguration configuration, IAuthenticationService autentication) 
+        {
+            _usuarioRepository = usuarioRepository;            
+            _autentication = autentication;
+        }
 
         /// <summary>
         /// teste
@@ -41,30 +50,22 @@ namespace Curso.Api.Controllers
         [ValidacaoModelStateCustomizado]
         public IActionResult Logar(LoginViewModelInput loginViewModelInput)
         {
+           var usuario = _usuarioRepository.ObterUsuario(loginViewModelInput.Login);
+
+            if (usuario == null)
+            {
+                return BadRequest("Houve um erro ao tentar acessar.");
+            }
 
             var usuarioViewModelOutput = new UsuarioViewModelOutput()
             {
-                Codigo = 1,
-                Login = "maromelo",
-                Email = "maromelo@gmail.com"
+                Codigo = usuario.Codigo,
+                Login = loginViewModelInput.Login,
+                Email = usuario.Email
             };
-            var secret = Encoding.ASCII.GetBytes("ERVtrebvtrBTRBt@#57538762345SAc'/][].");
-            var symmetricSecurityKey = new SymmetricSecurityKey(secret);
-            var securityTokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new System.Security.Claims.ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, usuarioViewModelOutput.Codigo.ToString()),
-                    new Claim(ClaimTypes.Name, usuarioViewModelOutput.Login.ToString()),
-                    new Claim(ClaimTypes.Email, usuarioViewModelOutput.Email.ToString())
-                }),
-                Expires = DateTime.UtcNow.AddDays(1),
-                SigningCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256Signature)
-            };
-            var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
-            var tokenGenerated = jwtSecurityTokenHandler.CreateToken(securityTokenDescriptor);
-            var token = jwtSecurityTokenHandler.WriteToken(tokenGenerated);
-
+           
+            var token = _autentication.GerarToken(usuarioViewModelOutput);
+            
             return Ok(new
             {
                 Token = token,
@@ -86,10 +87,7 @@ namespace Curso.Api.Controllers
         public IActionResult Registrar(RegistroViewModelInput loginViewModelInput)
         {
 
-            //var optionsBuilder = new DbContextOptionsBuilder<CursoDbContext>();
-            //optionsBuilder.UseSqlServer(connectionString: @"Server=(localdb)\mssqllocaldb;Database=curso;Integrated Security=true");
-
-            //CursoDbContext contexto = new CursoDbContext(optionsBuilder.Options);
+            
 
             //var migracoesPendentes = contexto.Database.GetPendingMigrations();
             //if (migracoesPendentes.Count() > 0)
